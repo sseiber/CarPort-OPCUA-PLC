@@ -1,4 +1,5 @@
 import {
+    DataValue,
     OPCUAServerOptions,
     UAObject,
     UAVariable
@@ -13,13 +14,13 @@ export interface IAppConfig {
 
 export interface IOpcAssetInfo {
     asset: UAObject;
-    variables: Map<string, IOpcVariable>;
+    variablesMap: Map<string, IOpcVariable>;
 }
 
 export interface IOpcVariable {
     variable: UAVariable;
     sampleInterval: number;
-    value: any;
+    value: DataValue;
 }
 
 export interface IAssetTag {

@@ -1,7 +1,8 @@
 import {
     AddressSpace,
-    BindVariableOptionsVariation1,
+    BindVariableOptionsVariation2,
     DataType,
+    DataValue,
     Namespace,
     OPCUAServer,
     StatusCodes,
@@ -96,7 +97,7 @@ export class RpiGdOpcuaServer {
             const assetConfigs: IAssetConfig[] = this.app.assetRootConfig.assets;
 
             for (const assetConfig of assetConfigs) {
-                const assetVariables: Map<string, IOpcVariable> = new Map<string, IOpcVariable>();
+                const assetVariablesMap: Map<string, IOpcVariable> = new Map<string, IOpcVariable>();
 
                 const opcAsset = this.localServerNamespace.addObject({
                     organizedBy: this.rootAssetsFolder,
@@ -108,18 +109,23 @@ export class RpiGdOpcuaServer {
                     const opcVariable: IOpcVariable = {
                         variable: undefined,
                         sampleInterval: tag.sampleInterval || 0,
-                        value: tag.value
+                        value: new DataValue({
+                            value: new Variant({
+                                dataType: tag.dataTypeName,
+                                value: tag.value
+                            })
+                        })
                     };
 
                     opcVariable.variable = await this.createAssetVariable(opcAsset, tag, opcVariable.value);
 
-                    assetVariables.set(tag.name, opcVariable);
+                    assetVariablesMap.set(tag.name, opcVariable);
                     this.opcVariableMap.set(opcVariable.variable.nodeId.value.toString(), opcVariable);
                 }
 
                 const opcAssetInfo: IOpcAssetInfo = {
                     asset: opcAsset,
-                    variables: assetVariables
+                    variablesMap: assetVariablesMap
                 };
 
                 this.opcAssetMap.set(assetConfig.name, opcAssetInfo);
@@ -130,7 +136,7 @@ export class RpiGdOpcuaServer {
         }
     }
 
-    private async createAssetVariable(asset: UAObject, tag: IAssetTag, varRef: any): Promise<UAVariable> {
+    private async createAssetVariable(asset: UAObject, tag: IAssetTag, dataValue: DataValue): Promise<UAVariable> {
         let uaVariable: UAVariable;
 
         try {
@@ -141,8 +147,10 @@ export class RpiGdOpcuaServer {
                 description: tag.description,
                 dataType: tag.dataTypeName,
                 minimumSamplingInterval: tag.sampleInterval,
-                value: this.createDataAccessor(tag, varRef)
+                value: this.createDataAccessor(tag, dataValue)
             });
+
+            this.addressSpace.installHistoricalDataNode(uaVariable);
         }
         catch (ex) {
             this.app.log([ModuleName, 'error'], `Error while adding new UAVariable: ${ex.message}`);
@@ -151,26 +159,27 @@ export class RpiGdOpcuaServer {
         return uaVariable;
     }
 
-    private createDataAccessor(tag: IAssetTag, varRef: any): BindVariableOptionsVariation1 {
+    private createDataAccessor(tag: IAssetTag, dataValue: DataValue): BindVariableOptionsVariation2 {
         return {
-            ...{
-                get: () => {
-                    return new Variant({
-                        dataType: this.getDataTypeEnumFromString(tag.dataTypeName), value: varRef
-                    });
+            timestamped_get: (): DataValue => {
+                if (tag.name === 'Activate') {
+                    dataValue.value.value = Math.random() * 100;
                 }
+
+                dataValue.sourceTimestamp = new Date();
+
+                return dataValue;
             },
-            ...(tag.writeable && {
-                set: (variant: any) => {
-                    if (variant.dataType !== this.getDataTypeEnumFromString(tag.dataTypeName)) {
-                        return StatusCodes.Bad;
-                    }
-
-                    varRef = variant.value;
-
-                    return StatusCodes.Good;
+            timestamped_set: async (newDataValue: DataValue): Promise<StatusCodes> => {
+                if (newDataValue.value.dataType !== this.getDataTypeEnumFromString(tag.dataTypeName)) {
+                    return StatusCodes.Bad;
                 }
-            })
+
+                dataValue.value = newDataValue.value;
+                dataValue.sourceTimestamp = newDataValue.sourceTimestamp;
+
+                return StatusCodes.Good;
+            }
         };
     }
 
