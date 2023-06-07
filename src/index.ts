@@ -1,23 +1,18 @@
-import { RpiGdOpcuaServer } from './services/rpiGdOpcuaServer';
 import { forget } from './utils';
 import * as fse from 'fs-extra';
 import { resolve as pathResolve } from 'path';
 import * as dotenv from 'dotenv';
+import { ServerState } from 'node-opcua';
+import { IAppConfig } from './models/carportTypes';
+import { RpiGdOpcuaServer } from './services/rpiGdOpcuaServer';
 dotenv.config({
     path: `${pathResolve(__dirname, '..', 'configs', 'envConfig')}.env`
 });
 
-export interface IAppConfig {
-    serverConfig: any;
-    server: RpiGdOpcuaServer;
-    storageRootDirectory: string;
-    log: (tags: any, message: any) => void;
-}
-
 const app: IAppConfig = {
-    serverConfig: {},
-    server: null,
-    storageRootDirectory: '',
+    serverConfig: undefined,
+    assetRootConfig: undefined,
+    storageRootDirectory: undefined,
     log: (tags: any, message: any) => {
         const tagsMessage = (tags && Array.isArray(tags)) ? `[${tags.join(', ')}]` : '[]';
 
@@ -29,9 +24,14 @@ const app: IAppConfig = {
 async function start() {
     try {
         const stopServer = async () => {
-            if (app.server) {
+            if (opcuaServer) {
+                if (opcuaServer.server.engine.serverStatus.state === ServerState.Shutdown) {
+                    app.log(['shutdown', 'info'], `Server shutdown already requested... shutdown will happen in ${opcuaServer.server.engine.serverStatus.secondsTillShutdown} seconds`);
+                    return;
+                }
+
                 app.log(['shutdown', 'info'], '☮︎ Stopping opcua server');
-                await app.server.stop();
+                await opcuaServer.stop();
             }
 
             app.log(['shutdown', 'info'], `⏏︎ Server stopped`);
@@ -47,16 +47,22 @@ async function start() {
 
         app.log(['startup', 'info'], `Loading configuration files...`);
         const systemConfigPath = pathResolve(app.storageRootDirectory, 'systemConfig.json');
-        app.serverConfig = fse.readJSONSync(systemConfigPath);
+        const systemConfig = fse.readJSONSync(systemConfigPath);
+        app.serverConfig = {
+            ...systemConfig.serverConfig
+        };
+        app.assetRootConfig = {
+            ...systemConfig.assetRootConfig
+        };
 
         app.log(['startup', 'info'], `Initializing server...`);
-        app.server = new RpiGdOpcuaServer(app);
+        const opcuaServer = new RpiGdOpcuaServer(app);
 
-        await app.server.start();
+        await opcuaServer.start();
 
         app.log(['startup', 'info'], `Server started ( press CTRL+C to stop)`);
 
-        app.log(['startup', 'info'], `Server endpoint: ${app.server.getEndpoint()}`);
+        app.log(['startup', 'info'], `Server endpoint: ${opcuaServer.getEndpoint()}`);
     }
     catch (ex) {
         // eslint-disable-next-line no-console
