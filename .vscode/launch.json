@@ -19,6 +19,12 @@
             ],
             "skipFiles": [
                 "<node_internals>/**"
+            ],
+            "env": {
+                "PORT": "4334"
+            },
+            "runtimeArgs": [
+                "--preserve-symlinks"
             ]
         }
     ]

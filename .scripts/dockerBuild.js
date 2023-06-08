@@ -1,8 +1,8 @@
-import { execFileSync } from 'child_process';
-import { type as osType } from 'os';
-import { resolve as pathResolve } from 'path';
-import * as fse from 'fs-extra';
-import { Command } from 'commander';
+const childProcess = require('child_process');
+const os = require('os');
+const path = require('path');
+const fse = require('fs-extra');
+const { Command } = require('commander');
 
 const programArgs = new Command()
     .option('-c, --config-file <configFile>', 'Build config file')
@@ -21,24 +21,29 @@ function log(message) {
 
 async function execDockerBuild(dockerArch, dockerImage) {
     const dockerArgs = [
+        'buildx',
         'build',
         '-f',
         `docker/${dockerArch}.Dockerfile`,
+        '--push',
+        '--platform',
+        'linux/arm64',
         '-t',
         dockerImage,
         '.'
     ];
 
-    execFileSync('docker', dockerArgs, { stdio: [0, 1, 2] });
+    childProcess.execFileSync('docker', dockerArgs, { stdio: [0, 1, 2] });
 }
 
 async function execDockerPush(dockerImage) {
-    const dockerArgs = [
-        'push',
-        dockerImage
-    ];
+    // const dockerArgs = [
+    //     'push',
+    //     dockerImage
+    // ];
 
-    execFileSync('docker', dockerArgs, { stdio: [0, 1, 2] });
+    // childProcess.execFileSync('docker', dockerArgs, { stdio: [0, 1, 2] });
+    log(`Multi-arch builds are pushed automatically during the build process`);
 }
 
 async function start() {
@@ -50,14 +55,14 @@ async function start() {
         }
 
         const configFile = programOptions.configFile || `imageConfig.json`;
-        const imageConfigFilePath = pathResolve(programOptions.workspaceFolder, `configs`, configFile);
+        const imageConfigFilePath = path.resolve(programOptions.workspaceFolder, `configs`, configFile);
         const imageConfig = fse.readJSONSync(imageConfigFilePath);
         const dockerVersion = imageConfig.versionTag || process.env.npm_package_version || programOptions.imageVersion || 'latest';
         const dockerArch = `${imageConfig.arch}${programOptions.debug ? '-debug' : ''}` || '';
         const dockerImage = `${imageConfig.imageName}:${dockerVersion}-${dockerArch}`;
 
         log(`Docker image: ${dockerImage}`);
-        log(`Platform: ${osType()}`);
+        log(`Platform: ${os.type()}`);
 
         if (programOptions.dockerBuild) {
             await execDockerBuild(dockerArch, dockerImage);

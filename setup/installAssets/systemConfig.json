@@ -1,0 +1,98 @@
+{
+    "serverConfig": {
+        "port": 4334,
+        "resourcePath": "/SeiberHome/Garage",
+        "buildInfo": {
+            "manufacturerName": "Seiber",
+            "productName": "RpiOpcuaPlc",
+            "softwareVersion": "1.0",
+            "buildNumber": "1"
+        }
+    },
+    "assetRootConfig": {
+        "rootFolderName": "rpi-gd",
+        "assets": [
+            {
+                "name": "GarageDoor1",
+                "tags": [
+                    {
+                        "name": "Activate",
+                        "description": "Activate the garage door motor (up/down)",
+                        "sampleInterval": 1000,
+                        "dataTypeName": "Double",
+                        "value": 10.5,
+                        "writeable": true
+                    },
+                    {
+                        "name": "DoorClosedSensor",
+                        "description": "Detect if the garage door is in the closed position",
+                        "sampleInterval": 1000,
+                        "dataTypeName": "Boolean",
+                        "value": false
+                    },
+                    {
+                        "name": "DoorOpenSensor",
+                        "description": "Detect if the garage door is in the open position",
+                        "sampleInterval": 1000,
+                        "dataTypeName": "Boolean",
+                        "value": false
+                    }
+                ]
+            },
+            {
+                "name": "GarageDoor2",
+                "tags": [
+                    {
+                        "name": "Activate",
+                        "description": "Activate the garage door motor (up/down)",
+                        "sampleInterval": 1000,
+                        "dataTypeName": "Double",
+                        "value": 10.5,
+                        "writeable": true
+                    },
+                    {
+                        "name": "DoorClosedSensor",
+                        "description": "Detect if the garage door is in the closed position",
+                        "sampleInterval": 1000,
+                        "dataTypeName": "Boolean",
+                        "value": false
+                    },
+                    {
+                        "name": "DoorOpenSensor",
+                        "description": "Detect if the garage door is in the open position",
+                        "sampleInterval": 1000,
+                        "dataTypeName": "Boolean",
+                        "value": false
+                    }
+                ]
+            },
+            {
+                "name": "GarageDoor3",
+                "tags": [
+                    {
+                        "name": "Activate",
+                        "description": "Activate the garage door motor (up/down)",
+                        "sampleInterval": 1000,
+                        "dataTypeName": "Double",
+                        "value": 10.5,
+                        "writeable": true
+                    },
+                    {
+                        "name": "DoorClosedSensor",
+                        "description": "Detect if the garage door is in the closed position",
+                        "sampleInterval": 1000,
+                        "dataTypeName": "Boolean",
+                        "value": false
+                    },
+                    {
+                        "name": "DoorOpenSensor",
+                        "description": "Detect if the garage door is in the open position",
+                        "sampleInterval": 1000,
+                        "dataTypeName": "Boolean",
+                        "value": false
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -25,7 +25,7 @@ This project is written in NodeJS and TypeScript implements a OPCUA server using
 * After installation you should see the following files in your project
   ```
   ./configs/imageConfig.json
-  ./configs/local.json
+  ./configs/envConfig.json
   ```
   Edit the `./configs/imageConfig.json` file with your specific image name including the container registry. e.g.:
   ```
