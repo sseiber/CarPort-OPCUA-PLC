@@ -30,12 +30,11 @@ This project is written in NodeJS and TypeScript implements a OPCUA server using
   Edit the `./configs/imageConfig.json` file with your specific image name including the container registry. e.g.:
   ```
   {
-    "arch": "amd64",
-    "imageName": "mycontainerregistry.azurecr.io/iiot-gateway",
-    "versionTag": "latest"
+    "arch": "arm64v8",
+    "imageName": "mycontainerregistry.azurecr.io/carport-opcua-plc"
   }
   ```
-  Note: The `./config/` files are ignored from source control. You can specify your image name that will be used when building the docker image as well as the version tag to use.
+  Note: The `./configs/` files are ignored from source control. You can specify your image name that will be used when building the docker image as well as the version tag to use.
 
 * Create a `./storage` directory in your cloned project
     * Note: this directory will be ignored from source control so you can use it to store your own copies of config files, or files with secrets like certificates, etc.
@@ -55,11 +54,11 @@ To run the docker container you need to specific where your configuration files 
 ```
 docker run \
     --name opcua-server \
-    -d \
+    -it \
     --rm \
-    -v <PATH_TO_OPCUA_CONFIG_FILES_ON_HOST>:/data/storage \
+    -v <PATH_TO_OPCUA_CONFIG_FILES_ON_HOST>:/rpi-gd/data \
     -p 4334:4334 \
-    <YOUR_CONTAINER_REGISTRY>/carport-opcua-plc:latest-amd64
+    <YOUR_CONTAINER_REGISTRY>/carport-opcua-plc:latest-arm64v8
 ```
 To see the command running you can view the docker container logs with:
 ```
