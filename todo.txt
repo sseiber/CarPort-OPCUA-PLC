@@ -1,0 +1,4 @@
+Create model for the host device
+  - node for host memory
+  - model number, etc.
+
